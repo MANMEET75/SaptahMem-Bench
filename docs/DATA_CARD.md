@@ -1,56 +1,42 @@
-# Data Card: SaptahMem-Bench (Blueprint)
+# Data Card: SaptahMem-Bench
 
-## Summary
+## Current release facts
 
-SaptahMem-Bench is a proposed benchmark for short-horizon conversational memory over a bounded seven-day (168-hour) interaction window. This repository currently contains a benchmark specification and two small, hand-authored development examples intended to validate schema and loader behavior. It does not yet contain a validated test set or performance leaderboard.
+- **Version/status:** 0.2.0-prep; protocol and loader fixture, not a validated dataset release.
+- **Current data:** two hand-authored fictional episodes and four questions in `data/dev/episodes.jsonl`.
+- **Current source:** fictional examples authored for schema/loader testing. No participant data, chat logs, or user study is included.
+- **Current validation:** scripts can validate timestamps/evidence and score deterministic exact/acceptable-answer predictions. No annotator study, human review, power analysis, model baseline, or leaderboard result has been produced.
+- **Current suitability:** schema and adapter prototyping only. Not suitable for model ranking, real-world generalization claims, deployment decisions, or statistical conclusions.
+- **Current license:** the existing blueprint and fictional fixture carry the repository's MIT terms. This says nothing about rights to future participant data.
 
-## Dataset status
+## Planned study release (not yet collected)
 
-- **Release:** 0.1.0 blueprint / development fixture
-- **Task:** conversational memory question answering at explicit timestamps
-- **Unit:** one fictional conversation episode plus queries, labels, and evidence
-- **Current size:** 2 illustrative episodes; 4 illustrative questions
-- **Intended future size:** 60 public development episodes and 300 hidden test episodes, subject to pilot quality and resources
-- **Current use:** software/schema prototyping and discussion of the proposed protocol only
-- **Not suitable for:** model ranking, generalization claims, deployment safety claims, or comparison of published systems
+The proposed v1 source is prospective, consented, English-language use of a fixed text study assistant for participants' ordinary, self-chosen needs over 168 hours. It is not scripted scenario completion or donated historical chat. The assistant version is frozen, persistent cross-session memory is disabled, and collection is limited to text, UTC timestamps, and session boundaries. No audio, location, contacts, or tool/web history is planned.
 
-## Motivation
+Plan: 50 pilot episodes, excluded from scored v1; then 1,000 main episodes from 1,000 distinct participants, initially split into 200 public development and 800 hidden test episodes. Each main episode targets 16 questions (normally 12 answerable and four unanswerable/ambiguous). A pilot-based preregistered power analysis may add hidden-test blocks of 100 episodes up to 1,500 main episodes total (200 dev and up to 1,300 hidden test). The pilot is not proof that the target size suffices; report the realized detectable effect and power.
 
-Short-term conversational memory includes recent facts, temporary plans, evolving state, and scoped preferences. The benchmark aims to measure whether systems retain and update these details across sessions while avoiding stale answers and unsupported guesses.
+These are targets only. Do not represent them as collected, available, or validated. Every future release must replace this section with exact counts, collection dates, participant flow and exclusions, consent choices, review/annotation process, license, checksums, and deviations.
 
-## Source and construction
+## Task and intended use
 
-The included records are hand-authored fictional examples. They do not represent actual people and contain no copied private conversations. Future releases may include synthetic, human-authored, or consented conversational data; every release must state the exact source mix and review process. The proposed target workflow includes scenario planning, conversation authoring, question writing, prefix-only verification, independent review, leakage checks, and adjudication.
+Each record is a seven-day conversation episode with chronological messages and timestamped question cutoffs. A system observes the transcript incrementally and answers from only the prefix available before each cutoff. The primary track evaluates memory without passing the raw transcript at query time. Separate diagnostics compare bounded history, recent-window, full-prefix, query-only, and gold-evidence conditions.
 
-## Collection and annotation
+After validation, intended use is research comparison of short-term conversational memory systems, including recall, cross-session binding, updates, scoped temporary intent, entity binding, distraction resistance, abstention, evidence grounding, and efficiency. This does not certify product readiness or safety and is not for high-stakes medical, legal, financial, or other advice.
 
-No participant data was collected for this blueprint fixture. No annotator agreement study has been conducted. The future benchmark must document annotator instructions, reviewer count, compensation, adjudication, and agreement for answerability, evidence, and semantic scoring.
+## Collection, consent, and privacy
 
-## Intended uses
+No participants have been recruited for the present release. Before any prospective study, obtain applicable ethics/IRB review, data-protection/security review, approved materials, separate explicit consent for public transcript release, and a preregistration. Participation consent alone does not authorize public release. The detailed procedures and gates are in `STUDY_PROTOCOL.md`.
 
-- Prototyping data loaders and evaluation adapters.
-- Designing research on short-horizon memory and retention.
-- Evaluating answerability, updates, recency, evidence grounding, and efficiency after a validated release.
+The planned public development data must be de-identified, reviewed by an independent privacy reviewer, and checked for re-identification risk. Remove direct identifiers and sensitive incidental content; minimize third-party details. Episodes that fail publication consent, redaction, rights, or privacy review are excluded from the public split. Keep the hidden test transcripts/questions/labels access-controlled. Define withdrawal, retention, access logging, incident response, and deletion before collection. Do not use scraped or private chat dumps.
 
-## Out-of-scope uses
+## Annotation and quality
 
-- Treating scores on this two-episode fixture as evidence of product quality.
-- Inferring how real users behave from fictional examples.
-- Testing medical, legal, financial, or other high-stakes advice.
-- Re-identifying real people; the current fixture has no real-person data.
+The planned annotation protocol requires a question author, independent prefix-only verifier, and second reviewer for every hidden-test episode. Verifiers see no future turns, author notes, gold answer, or evidence labels. Annotate canonical and accepted answers, answerability, minimum evidence IDs, skills, difficulty, and a distinguishing rubric. Adjudicate disagreements and report agreement with counts and uncertainty. No such annotation or agreement results exist for the current four-question fixture.
 
 ## Biases and limitations
 
-The current sample is tiny, English-only, and authored by one person. It cannot represent dialogue diversity, real-world noise, cultural variation, natural rates of forgetting, or population-level preferences. Its facts and question patterns are easy to inspect and may be memorized. It is not suitable for statistical analysis. LLM-as-judge scoring is only a proposal pending calibration and human audit.
+The present fixture is tiny, English-only, and fictional. It cannot support statistical analysis or represent actual user behavior. A future prospective study may still have participation effects, selection bias, assistant-specific interaction patterns, English-first coverage, and public-release exclusions. Natural occurrence of rare skill categories may be uneven; report realized distribution rather than claim balanced population prevalence. Synthetic examples must remain clearly labeled and must not be combined with participant data without release-specific provenance.
 
-## Privacy and risk
+## Maintenance and contact
 
-Current examples use fictional names and ordinary low-risk logistics. Future data releases must prevent disclosure of sensitive personal information, define consent and withdrawal procedures, and review synthetic outputs for accidental real-person references. A seven-day benchmark captures one operational window and does not establish a universal definition of short-term memory.
-
-## License and terms
-
-The current benchmark documentation and examples use MIT terms (see repository `LICENSE`). A future dataset may use a distinct license; the release-specific terms take precedence and must be reviewed before redistribution.
-
-## Maintenance
-
-Report errors through the repository issue tracker. Corrections will be documented in the changelog and released with versioned checksums. Scored releases will not be silently overwritten.
+Version data and code separately, publish immutable checksums, and never silently replace a scored release. Report public schema or label issues in the GitHub repository. Before recruitment, establish and test a monitored private contact route for privacy, incidents, and withdrawal requests; no participant study should begin until it exists. Do not post participant text in public issues.

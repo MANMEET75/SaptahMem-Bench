@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://huggingface.co/datasets/MANMEET75/SaptahMem-Bench/raw/main/schemas/episode.schema.json",
   "title": "SaptahMem-Bench episode",
-  "description": "One fictional short-horizon conversational-memory episode with chronological messages and questions at explicit cutoffs.",
+  "description": "One seven-day short-horizon conversational-memory episode with chronological messages and questions at explicit cutoffs. Source provenance and consent conditions are documented at the release level; participant identifiers must never appear in episode records.",
   "type": "object",
   "additionalProperties": false,
   "required": ["episode_id", "split", "start_time", "duration_hours", "scenario_domain", "language", "messages", "questions"],

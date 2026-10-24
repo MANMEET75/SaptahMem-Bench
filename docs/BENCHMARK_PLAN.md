@@ -1,143 +1,89 @@
-# Benchmark Plan and Release Gates
+# Benchmark Plan and Decision Gates
 
-## Objective
+## Objective and current state
 
-Create a reproducible, independently reviewable evaluation of short-horizon conversational memory over seven consecutive 24-hour periods. The benchmark should distinguish retaining information from updating it, retrieving the right version, honoring scope, and abstaining when evidence is missing.
+SaptahMem-Bench is intended to compare short-term conversational memory systems on natural, consented conversations spanning seven days. The current release is protocol preparation only: two fictional episodes/four questions, no human-collected data, no reviewed test set, and no performance claims. This file is a plan, not evidence that a study or release has occurred.
 
-## Decision principles
+## Frozen design choices
 
-- Fix the primary horizon to 168 hours from episode start; treat other horizons as separate tracks.
-- Keep the benchmark architecture-neutral: incremental observation and answer-at-cutoff are the required interface, not a prescribed database or prompt.
-- Keep memory-only, bounded-history, full-history, and oracle diagnostics in separate tables.
-- Make temporal evidence, answerability, and source-turn provenance explicit.
-- Use fictional or consented data; do not use private chat dumps.
-- Release only after evidence, labels, split integrity, scoring, and licenses pass review.
+- Primary horizon: 168 consecutive hours from episode start; timestamps in UTC.
+- Study source: prospective English-language use of a frozen, text-only study assistant for participants' ordinary, self-chosen needs; no scripted benchmark fact tasks.
+- Cohort: one participant and one episode per record. Separate 50-person pilot; 1,000 main episodes initially (200 public dev, 800 hidden test), with preregistered 100-episode expansion blocks to at most 1,500 main episodes total (200 dev plus up to 1,300 hidden test).
+- Questions: target 16 per main episode (normally 12 answerable and four unanswerable/ambiguous); all ten skill categories represented across the release, without forcing unnatural episode-level quotas.
+- Primary task: incremental replay, then answer at a cutoff from system memory alone. The permitted prefix is strictly earlier than the cutoff.
+- Primary use: paired comparison of systems. Not a product-readiness or safety certification.
+- Public release: dev transcripts/labels only after separate publication consent, redaction, privacy and rights review, and re-identification audit. Hidden test stays controlled.
 
-## Work plan
+## Work phases and release gates
 
-### Phase 0 — Specification and fixture (current)
+### Phase 0 — Protocol preparation (current)
 
-Deliver: README, JSON schema, a tiny hand-authored dev fixture, data card, and clear status label. The fixture validates representation only. It is not a performance test set.
+Deliver this protocol, draft participant information/consent materials, annotation guide, data card, JSON schema, fictional loader fixture, deterministic validator/scorer, and exact-overlap audit. No study recruitment, participant data, hidden-test claims, or leaderboard.
 
-Exit gate: all records parse, schema passes, message timestamps are chronological, every evidence reference resolves, and no future message is required to answer a question.
+**Gate:** scripts run on current fixtures; protocol and current-data claims agree across GitHub and Hugging Face; risk and privacy limitations are explicit.
 
-### Phase 1 — Pilot (30 episodes, approximately 300–360 questions)
+### Phase 1 — Prospective pilot (50 participants/episodes)
 
-- Author 30 distinct seven-day plans in at least six domains.
-- Include all skill types, with update, temporary intent, and abstention cases represented.
-- Obtain independent question answering from a visible prefix; remove ambiguous gold labels.
-- Have a second reviewer audit 20% of episodes and all disputed items.
-- Run simple lexical, recency, full-history, and no-memory baselines to find shortcuts and floor/ceiling effects. These are diagnostics, not leaderboard claims.
-- Evaluate human agreement on answerability, evidence sufficiency, and answer quality. Revise rubrics if agreement is weak.
+Obtain ethics/IRB determination and security/data-protection approval before recruitment. Freeze assistant and participant materials. Run one 168-hour episode per participant, separate participation and public-release consent, and train study staff. Test opt-in flow, pause/withdrawal, logging minimization, privacy review, annotation load, category naturalness, query difficulty, agreement, and baseline feasibility. Pilot episodes are not part of main v1 scores.
 
-Exit gate: pre-registered acceptance thresholds, no unresolved leakage, documented agreement, stable scoring on paraphrase/edge cases, and a pilot report. Thresholds should be set before observing final model comparisons.
+Estimate question/episode variance, within-episode correlation, missingness, human annotation reliability, and collection yield. Preregister primary comparison, 3-point target paired effect, two-sided alpha 0.05, 80% power, bootstrap procedure, sample-size re-estimation rule, exclusions, and stopping rule before the main cohort. Revise prompts/rubrics only based on pilot, then freeze them.
 
-### Phase 2 — Public development set (60 episodes, approximately 720 questions)
+**Gate:** no unresolved privacy incident; collection and withdrawal work end-to-end; annotator agreement and adjudication are documented; leakage audit and baseline sanity checks pass; protocol and power calculation are preregistered.
 
-- Use scenario-plan and template families absent from pilot evaluation templates where practical.
-- Publish labels, evidence, source messages, prompt instructions, and license.
-- Publish evaluator code and baseline outputs with exact versions/settings.
-- Add starter adapters and schema validation; ensure a developer can run the evaluation offline.
+### Phase 2 — Main data collection and public dev
 
-Exit gate: reproducible results from a clean environment, versioned hashes, documented costs, and a clear path to submit predictions.
+Recruit 1,000 distinct participants initially, aiming to publish 200 cleared dev episodes and retain 800 test episodes. Maintain one participant per episode and disjoint participant IDs across pilot/dev/test. Preserve natural variation in active days, session gaps, message volume, and everyday domains; report these distributions. Do not induce facts or query topics to fill category quotas.
 
-### Phase 3 — Hidden test set (target 300 episodes, approximately 3,600 questions)
+Every proposed public episode receives explicit publication consent, contextual redaction, independent privacy review, re-identification assessment, and rights/license review. Exclude records that fail any gate. The release may have fewer than 200 public episodes if consent/review excludes records; recruit additional participants under the approved protocol if needed. Never relax privacy gates to hit a count. Keep participant identity linkage and raw data outside GitHub/Hugging Face.
 
-- Generate from disjoint plans, entity inventories, and template families.
-- Keep hidden questions/labels on a controlled evaluation service or release them only after a version is retired.
-- Reserve whole episodes, not question rows, for test. Do not tune prompts against test feedback.
-- Stratify domains, question categories, answerability, difficulty, session density, and query offset. Publish exact counts after freeze.
-- Establish a submission policy: one official submission per system version per release window, or another clearly justified rate limit; log immutable system and evaluator versions.
+Annotate public dev with the same blinded protocol as test. Publish only de-identified approved records and labels, exact sample counts, data version/checksum, source/collection facts, exclusions in aggregate, annotation reliability, known bias, license, and evaluator code. The present fixture remains clearly labeled fictional and separate.
 
-Exit gate: blind review by at least two independent reviewers; source data rights confirmed; automated and manual leakage audit; frozen evaluator and judge; benchmark card approved; data checksum published.
+**Gate:** exact records in public release have publication consent, clean validation, resolved evidence, reviewer sign-off, passing privacy audit, documented license, and frozen hashes.
 
-### Phase 4 — v1.0 release and maintenance
+### Phase 3 — Hidden test and benchmark v1
 
-Release benchmark card, data statement, code, baseline report, scoring artifacts, and a paper or technical report. Assign a version and checksum. Use semantic versioning: patch for documentation/bug fixes without changing examples or scores; minor for additive non-breaking data; major for changes to task definition, labels, splits, or scoring. Never overwrite a scored release silently.
+Maintain an access-controlled test store, split manifest, labels, and audit log. Two reviewers inspect every test episode; a prefix-only verifier sees no future dialogue, author note, gold answer, or evidence. Freeze item set, evaluator version, system submission schema, and checksums before accepting official runs.
 
-## Sampling and balancing plan
+Use pilot statistics for an episode-clustered paired power calculation: 80% power at two-sided alpha 0.05 for a 3 percentage-point difference on the primary macro score. If 800 test episodes are insufficient, recruit additional hidden participants in fixed 100-episode blocks while keeping 200 dev episodes fixed, up to 1,500 main episodes total (1,300 hidden). If precision/power still misses the target, report the detectable effect and mark the comparison underpowered; do not imply a decision threshold was met.
 
-Initial target test size is a proposal, not a fixed quota until a pilot verifies annotation capacity and question quality. Aim for 12 questions per episode:
+Use a rate-limited evaluation endpoint or controlled evaluation operator for submissions. Bind every submission to system/version/configuration hashes and timestamp. Do not return item-level gold data or feedback that enables hidden-set tuning. Publish an independent report with paired clustered intervals, all denominators, baseline settings, errors, efficiency, calibration, exclusions, and deviations.
 
-- 2 recent episodic recall
-- 2 cross-session binding
-- 2 temporal/state-update
-- 1 ephemeral intent/commitment
-- 1 preference scope/decay
-- 1 entity/speaker binding
-- 1 distraction resistance
-- 2 unanswerable/ambiguous abstention
+**Gate:** frozen and audited hidden set; preregistered sample size and analysis; reproducible evaluator; independent privacy/annotation audit; hashes and release terms published; no unresolved leakage; baseline report complete.
 
-Some questions can have secondary tags. Over the whole test set, maintain diversity in domain, dialogue style, daily message volume, time gaps, question phrasing, answer length, and evidence distance. Do not force category quotas that produce unnatural dialogue. Track all deviations.
+### Phase 4 — Maintenance
 
-## Annotation manual requirements
+Use semantic versioning. Patch versions fix code/docs without changing scored data. Minor versions add compatible records. Major versions change task, schema, labels, splits, or scoring. Never silently overwrite a scored version. Publish a change log, checksums, correction/removal procedure, maintainer roles, and privacy contact. Retire or refresh hidden test if leakage is demonstrated.
 
-For every episode, keep a private authoring plan linking planted facts and updates to source turns. For each question, annotators must provide:
+## Question sampling and annotation
 
-- Question and exact query timestamp.
-- Answerability: answerable, unanswerable, or ambiguous under the visible prefix.
-- Canonical answer plus acceptable variants or a rubric for multi-part answers.
-- Minimal sufficient evidence message IDs, with optional exact spans.
-- Primary and secondary skills; difficulty; update/scope/recency tags.
-- For changed facts, explicit `current_value`, `previous_value`, and validity interval when relevant.
-- A short rationale for ambiguous and abstention cases.
+Use the ten categories in the README. Target 16 questions per main episode, usually 12 answerable and four unanswerable/ambiguous. This is a planning target; report realized counts and do not write artificial conversations to satisfy a quota. Query cutoffs should cover short and long evidence delays, state updates, interruptions, and late-week recall. Each question records cutoff, answerability, canonical and accepted answers, minimum evidence IDs, category, difficulty, and rubric. An answerable question needs sufficient pre-cutoff evidence; unresolved uncertainty must be explicitly labeled.
 
-The prefix-only annotator must not see future turns or writer notes. If a competent annotator cannot answer confidently using only the prefix, either revise the episode/question or label it as unanswerable/ambiguous with an explicit rubric.
+For every hidden-test episode, require an author, independent prefix-only verifier, and independent second reviewer. Adjudicate all disagreements. Report raw and chance-corrected agreement with label definitions, sample, denominators, and intervals. See `ANNOTATION_GUIDE.md` for the operating procedure.
 
-## Baseline suite
+## Baselines and statistics
 
-Minimum baselines:
+Run no-memory/question-only and always-abstain controls; recent-window (including token-matched); rolling session summary; raw-message retrieval; structured fact store with update/provenance handling; full permitted prefix; and gold-evidence answerer. Use the same answer model and decoding where possible. Report full-prefix and gold-evidence as diagnostics, never memory-system leaderboard scores.
 
-1. Query-only / no memory.
-2. Last N messages (include at least one token-matched setting).
-3. Rolling summary updated after each session.
-4. Retrieval over raw message chunks.
-5. Structured fact store with explicit update handling.
-6. Memory system under evaluation.
-7. Full allowed transcript at query time.
-8. Gold-evidence answerer diagnostic.
+Primary planned metric: macro-average question accuracy across the ten primary skill categories. Also publish micro accuracy, each category, answerability/abstention outcomes, exact match, calibrated human-audited semantic rubric score, evidence grounding, temporal/update accuracy, and efficiency. The current included scorer implements only deterministic exact/acceptable-answer and abstention scoring. For system comparisons, use paired episode-cluster bootstrap intervals and report the interval for the paired difference; resample episodes, not questions. Predefine every primary contrast and analysis before test evaluation.
 
-Use the same answer model and decoding settings where possible. If not, clearly label the comparison and avoid causal claims. Include at least one strong model that can solve answer generation from supplied gold evidence.
+## Quality and leakage controls
 
-## Statistical and scoring protocol
+- Validate record shape, JSONL, unique IDs, UTC chronology, 168-hour bounds, cutoff boundaries, and evidence references.
+- Assign splits by participant, never by question. Keep pilot, public dev, and hidden test participants disjoint.
+- Run exact duplicate question/message scans as triage only; review semantic paraphrase and shared-template leakage manually.
+- Run question-only, no-memory, recency, full-prefix, and oracle-evidence diagnostics for leakage, floor, and ceiling behavior.
+- Search for future-turn dependence, answer text in question/metadata/IDs, lexical artifacts, duplicated corrections, unsupported world knowledge, and shortcut cues.
+- Have annotators solve from the exact visible prefix and log all exclusions and adjudications.
+- Check rights, explicit release consent, contextual de-identification, third-party references, redaction quality, and re-identification risk for every public episode.
 
-- Predefine deterministic normalization for Exact Match: Unicode NFKC, lowercase where language permits, trim, collapse whitespace, and narrowly specified punctuation handling. Never normalize away dates, negation, units, or entity distinctions.
-- Score each question once per run. If sampling is stochastic, run at least three seeds or disclose a single run and report uncertainty accordingly.
-- Use episode-clustered bootstrap confidence intervals (episodes, not individual questions, are resampled) for overall and category metrics.
-- Keep semantic judge outputs per item and raw judge rationale private if they contain sensitive material; for synthetic benchmark data, release item labels and a safe audit trail.
-- Human-audit a stratified sample of judge decisions, all ambiguous cases, and a sample of false positives/negatives.
-- Report question counts and denominators; do not average only categories that a system attempted.
-- Report abstention separately from answer accuracy; an always-abstain system must not obtain a competitive overall score.
+## Tools and commands
 
-## Threats to validity and mitigations
+From repository root, using Python 3.7 or later:
 
-| Threat | Mitigation |
-|---|---|
-| Benchmark-specific wording/template memorization | Disjoint plan and template splits; periodic refreshed hidden test; paraphrase diversity |
-| Answer leakage from question or metadata | Random IDs; remove author notes; question-only baseline; leakage scans |
-| Future-context leakage | Strict cutoff adapters; prefix-only answers; automated future-turn tests |
-| LLM judge preference or inconsistency | Fixed prompts/model version; human calibration and audit; release labels |
-| Synthetic dialogue unnaturalness | Human edit/review; disclose origin; later consented real-data extension |
-| Answer model dominates memory differences | Same answer model across tracks; oracle-evidence diagnostic; publish memory-only retrieval evidence |
-| Short window is confused with long-term persistence | State explicit horizon and window-boundary task; position as complement to long-term suites |
-| Repeated facts make task trivial | Include updates, scoped preferences, distractors, omissions, and near-miss values |
-| Overfitting to leaderboard | Rate-limit submissions, separate public dev from hidden test, retire versions on leakage |
+```bash
+python scripts/validate_dataset.py data/dev/episodes.jsonl
+python scripts/audit_leakage.py data/dev/episodes.jsonl
+python scripts/score_predictions.py --gold data/dev/episodes.jsonl --predictions predictions.jsonl
+```
 
-## Governance and release responsibilities
-
-Before v1, identify named owners for data curation, annotation, evaluator maintenance, and leaderboard operations. Maintain a public issue template for errors, a versioned correction policy, and a privacy contact. Each release must include contributor roles, data sources, generation tools, annotation compensation, licenses, and known risks. A benchmark maintainer should not certify their own system's score without a reproducible external audit.
-
-## Go / no-go release checklist
-
-- [ ] Every included episode is synthetic or consented and has a compatible license.
-- [ ] Seven-day bounds and cutoff semantics are explicit and machine-checkable.
-- [ ] No answer depends on future dialogue or private writer notes.
-- [ ] All message IDs, question IDs, evidence IDs, and timestamps are valid.
-- [ ] Questions are answerable from the prefix or explicitly marked otherwise.
-- [ ] Independent reviewers check a stratified sample and disagreements are resolved.
-- [ ] Question-only, no-memory, recency, and full-history diagnostics are run.
-- [ ] Split leakage and near-duplicate scans pass.
-- [ ] Metrics, confidence intervals, judge versions, and costs are documented.
-- [ ] Dataset card, benchmark card, citation, license, and checksum are published.
-- [ ] Public examples contain no personal data or unsafe advice.
-- [ ] Release status accurately distinguishes proposal, pilot, and validated benchmark.
+`--expect-main-release` checks exact initial target counts and 16 questions per record. It is intended for private release-preparation data, not the two-record fixture. See `EVALUATION_PROTOCOL.md` for the prediction format, assumptions, and metric limitations.

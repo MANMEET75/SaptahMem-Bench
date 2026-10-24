@@ -4,7 +4,7 @@ language:
   - en
 task_categories:
   - question-answering
-pretty_name: SaptahMem-Bench (Blueprint Fixture)
+pretty_name: SaptahMem-Bench (Protocol and Fixture)
 tags:
   - conversational-memory
   - short-term-memory
@@ -16,103 +16,67 @@ size_categories:
 
 # SaptahMem-Bench
 
-**A benchmark blueprint for short-horizon conversational memory in assistants.**
+**A benchmark and prospective study protocol for seven-day conversational memory.**
 
-> **Release status: v0.1.0 blueprint and development fixture.** This is a proposal, not a completed or human-validated benchmark. It has no leaderboard or model-performance claims.
+> **Current status: protocol and development fixture only (0.2.0-prep).** This dataset repository currently contains two fictional hand-authored episodes and four questions. No human-participant study has been run; there is no real-world dataset, validated test set, leaderboard, or model-performance result. Do not use the fixture to compare systems or make statistical/generalization claims.
 
-SaptahMem-Bench evaluates whether an assistant can retain, update, retrieve, combine, and appropriately abstain on facts across a bounded **seven-day (168-hour) conversational window**. It is designed to complement long-horizon evaluations such as BEAM and LoCoMo by focusing on freshness, temporary intent, scope, and near-term state changes.
+SaptahMem-Bench is designed to evaluate whether a system can retain and update conversational information over a bounded **168-hour** window, retrieve the right value at a query cutoff, respect the scope of temporary intent, bind facts to the right entity, and abstain when evidence is missing. It complements long-horizon conversational memory benchmarks; it does not claim a universal definition of short-term memory.
 
-## Current dataset contents
+## Current contents
 
-This release contains **two fictional hand-authored episodes and four questions**. The examples are provided to help validate loaders and discuss the schema. They are not suitable for model ranking, statistical analysis, or claims about real-world users.
+- `data/dev/episodes.jsonl`: two fictional loader-fixture episodes with four questions total.
+- `schemas/episode.schema.json`: episode JSON Schema.
+- `LICENSE`: applies to this blueprint and current fictional fixture. It does not automatically apply to future participant data.
+- `docs/`: study protocol, draft consent information, annotation instructions, evaluation protocol, data card, release gates, and baseline-results status.
+- `scripts/`: offline data validator, exact-overlap triage, and deterministic scorer. These are preparation tools; no baseline model has been run.
+- Full protocol, study and annotation procedures, evaluator scripts, and data card: [GitHub repository](https://github.com/MANMEET75/SaptahMem-Bench).
 
-Files:
-- data/dev/episodes.jsonl — episode-level records with messages and questions.
-- schemas/episode.schema.json — JSON Schema for validating episode records.
-- GitHub repository — full benchmark plan, annotation instructions, and release checklist: https://github.com/MANMEET75/SaptahMem-Bench
+One JSONL line is one episode. Episodes contain a UTC start time, a 168-hour duration, chronological user/assistant messages, and questions with cutoff timestamps and gold annotations. Question evidence IDs, answers, acceptable variants, and rubrics are evaluation-only; never expose them to the system being tested.
 
-## Task and episode format
+## Planned prospective study (not collected yet)
 
-Each episode declares a UTC start time and 168-hour duration. Its chronologically ordered user/assistant messages have stable message IDs, timestamps, and session IDs. Each question has an explicit query cutoff. Answer using only messages timestamped before that cutoff; future dialogue and gold labels are evaluator-only. `source_message_ids` identify the supporting evidence and must not be shown to the evaluated answerer.
+The planned real-world data source is prospective, consented, English-language use of a fixed text study assistant for participants' ordinary, self-chosen needs over seven days. Participants will not receive scripted fact-sharing tasks or question templates. The collection assistant will be frozen, have persistent cross-session memory disabled, and collect only text, UTC timestamps, and session boundaries. No audio, location, contacts, or tool/web history are planned.
 
-Question fields include the question text, primary and secondary skills, answerability label, canonical answer, acceptable variants, evidence IDs, difficulty, and a grading rubric. Unanswerable questions use a null gold answer and require a grounded abstention.
+The target is 50 pilot episodes, not scored, followed by 1,000 main episodes from 1,000 distinct participants: 200 public development episodes and 800 hidden-test episodes. Target 16 questions per main episode (normally 12 answerable and four unanswerable/ambiguous). A preregistered pilot-based power analysis may add hidden-test episodes in fixed blocks of 100, up to 1,500 main episodes total (200 dev and at most 1,300 hidden test). These are plans only, not current dataset contents or guarantees of statistical power.
 
-## Proposed skill taxonomy
+Public development transcripts and labels will be released only if the participant explicitly consents to public data release and each episode passes redaction, independent privacy review, rights, and re-identification checks. Participation consent alone is insufficient. Hidden-test conversations, questions, and labels will remain under controlled evaluation. Episodes that do not pass public-release gates will be excluded from the public split. The full study and withdrawal procedures are in `docs/STUDY_PROTOCOL.md`; the participant information/consent file is a draft, not an approved form. Ethics/privacy/legal review and applicable institutional approval are required before recruitment.
 
-1. Recent episodic recall.
-2. Cross-session fact binding and multi-hop composition.
-3. Temporal order and recency.
-4. State updates and corrections, including current versus historical values.
-5. Ephemeral plans, reminders, deadlines, and commitments.
-6. Preference scope: stable versus task- or week-specific.
-7. Entity and speaker binding.
-8. Distractor resistance.
-9. Unanswerable and ambiguous query handling.
-10. Retention-window boundary probes, reported as a separate track.
+## Skills and evaluation
 
-## Seven-day evaluation protocol
+The proposed taxonomy covers recent episodic recall, cross-session binding, temporal ordering/recency, state updates, ephemeral intent, preference scope, entity/speaker binding, distractor resistance, unanswerable/ambiguous questions, and separately reported window-boundary probes. Coverage is reported as observed; category quotas must not produce unnatural conversations.
 
-- Observe every message exactly once in timestamp order; no future turns, question labels, or evidence metadata during ingestion.
-- Use UTC timestamps and seven 24-hour bins measured from the episode start, not local calendar midnights.
-- Answer questions only from the permitted prefix and selected track. The primary cutoff is within the 168-hour horizon.
-- Return a final answer and, where supported, cited message IDs or spans. Record model versions, prompts, token usage, latency, retries, external calls, and memory settings.
-- Do not use web search or test labels to answer benchmark questions.
+The primary evaluation replays each episode chronologically. A system observes every message once and answers questions using only messages strictly earlier than the cutoff. The primary memory-only track gives no raw transcript at query time. Report bounded-transcript, recent-window, full-prefix, no-memory, and gold-evidence diagnostics separately; full-prefix and oracle-evidence are not memory leaderboard scores.
 
-### Report separate tracks
+The planned headline is macro-average per-question accuracy over primary skill categories, with micro accuracy and answerable/unanswerable/ambiguous strata reported too. The included scorer currently computes exact/acceptable-answer matches and abstention correctness; it does not determine semantic equivalence. Semantic scoring requires a frozen rubric/judge calibrated against blinded human labels. Compare systems on identical episodes, use paired episode-clustered confidence intervals, and disclose counts, failures, prompts, model versions, memory budgets, latency, token use, and costs.
 
-- Memory-only (primary): incremental memory is available; raw transcript is not passed at query time.
-- Memory plus bounded transcript: disclose the buffer size and memory budget.
-- Recent-window baseline: disclose last-N-message or time-window limit.
-- Full-history context upper bound: all pre-cutoff messages are supplied; this does not demonstrate external memory.
-- No-memory baseline: question-only answering to detect leakage or answer priors.
-- Oracle-evidence diagnostic: supply gold evidence to measure answer-generation ability; do not rank as a memory score.
+## Load the current fixture
 
-Never combine these tracks into one leaderboard score. Disclose model/provider versions, prompts, decoding, context and memory budgets, retrieval settings, costs, code revision, and all retries.
+```python
+from datasets import load_dataset
 
-## Scoring
+ds = load_dataset(
+    "json",
+    data_files="https://huggingface.co/datasets/MANMEET75/SaptahMem-Bench/resolve/main/data/dev/episodes.jsonl",
+)
+print(len(ds["train"]))  # currently 2 fictional episodes
+```
 
-Report results overall and by skill, answerability, difficulty, and episode, including denominators and episode-clustered confidence intervals.
+## Data, risks, and limitations
 
-- Exact match for constrained answers using documented normalization that preserves dates, negation, units, and entity distinctions.
-- Semantic answer accuracy using a fixed rubric/judge, with judge model, prompt, raw labels, and human audit sample disclosed.
-- Evidence precision, recall, and F1 when systems return evidence; do not treat an uncited answer as grounded.
-- Abstention precision, recall, and F1; separately count missed abstentions and false assertions.
-- Temporal/state accuracy for current-value and historical-value questions.
-- Efficiency: median/p95 latency, stored/read/generated tokens, memory footprint, and cost per 100 questions.
-- Error types: stale value, forgotten fact, wrong entity, unsupported inference, false abstention, missed abstention, and evidence mismatch.
+No participants or private chat data are represented in the current fixture. Its tiny size, fictional wording, and public labels make it unsuitable for score claims. Future data may reflect study-participation and assistant-specific effects, English-first recruitment, category imbalance, and exclusions required for privacy. This benchmark does not certify product readiness or safety and is not intended for high-stakes medical, legal, financial, or other advice.
 
-Proposed headline: macro-average semantic accuracy over the ten primary skills, while showing answerable and unanswerable strata separately. Also publish micro accuracy and every category score. Do not publish leaderboard rankings until a reviewed test set and calibrated evaluator exist.
+The current blueprint, tools, and fixture carry MIT terms. Future participant releases may have distinct terms and will only be published under a license compatible with consent and rights review. **No baselines have been run and no benchmark scores are available.** Version data and code, publish checksums, and never silently overwrite a scored release. Report issues via [GitHub](https://github.com/MANMEET75/SaptahMem-Bench); do not post participant text in public issues.
 
-## Planned scale and curation
+## Citation
 
-The proposed v1 target is a 30-episode pilot, 60 public development episodes, and 300 hidden test episodes, with about 12 questions per episode. These are planning targets and may change after the pilot. Split entire scenario plans, entity inventories, and template families to reduce leakage. Aim for at least 25% unanswerable/ambiguous and 25% update/recency questions if natural coverage and pilot quality support those proportions.
-
-Creation workflow: author a seven-day scenario plan; write varied sessions and distractors; annotate canonical answers, answerability, minimal evidence, skill, and rubric; independently answer from each visible prefix; run chronology, schema, evidence, duplicate, and leakage checks; adjudicate disagreements; publish a data statement and versioned checksums. A prefix-only annotator must never see future turns or author notes.
-
-## Data statement, intended use, and limits
-
-The current records are fictional and hand-authored. No private chat, participant data, sensitive personal data, or real-user conversation is included. The fixture is English-only and tiny; it cannot represent natural dialogue diversity or real-world memory needs. No annotation-agreement study or human audit has been conducted. Do not use this fixture to compare systems or make safety/product claims. Future releases must document source provenance, generation tools, consent, compensation, licenses, review, and known limitations; never distribute scraped private chats or personal identifiers.
-
-Intended now: schema/load testing and methodology discussion. Intended after validation: research evaluation of short-horizon conversational-memory systems. Not intended for high-stakes medical, legal, or financial evaluation.
-
-## Load the JSONL
-
-    from datasets import load_dataset
-    ds = load_dataset("json", data_files="https://huggingface.co/datasets/MANMEET75/SaptahMem-Bench/resolve/main/data/dev/episodes.jsonl")
-    print(ds["train"][0]["episode_id"])
-
-For local use, pass the downloaded JSONL path to `load_dataset("json", data_files=...)`. Each row is one complete episode; questions are nested within the episode record.
-
-## License, citation, and status
-
-MIT for this blueprint fixture and its documentation. A future benchmark release may use different terms. No paper or official validated benchmark release exists yet; cite the repository and immutable revision, and do not describe this fixture as a validated benchmark.
+No validated benchmark paper exists yet. Until publication, cite the repository release and immutable revision. Do not describe the current fixture as a validated benchmark.
 
 ```bibtex
-@software{saptahmem_bench_blueprint,
-  title = {SaptahMem-Bench: A Benchmark Blueprint for Short-Horizon Conversational Memory},
+@software{saptahmem_bench,
+  title = {SaptahMem-Bench: A Benchmark and Study Protocol for Short-Horizon Conversational Memory},
   author = {MANMEET75},
   year = {2026},
-  version = {0.1.0},
+  version = {0.2.0-prep},
   url = {https://github.com/MANMEET75/SaptahMem-Bench}
 }
 ```
