@@ -159,7 +159,37 @@ The proposed JSONL schema contains `episode_id`, `split`, `start_time`, `duratio
 
 ## Local tooling
 
-The preparation tools use only Python's standard library (Python 3.7+). From the repository root:
+### Evaluate a memory system locally
+
+The repository includes the public synthetic pilot/dev/test JSONL files and a scorer. It does **not** include a hosted submission service or a system adapter: you connect your own memory system, replay the records under the rules below, and score its prediction file. The test split and its labels are public, so use **dev** while iterating and reserve **test** for a final, clearly labeled synthetic-track run. Public test scores can be tuned to and are not hidden-test results.
+
+1. **Choose a split.** Use `data/synthetic/dev/episodes.jsonl` for development or `data/synthetic/test/episodes.jsonl` for a final comparison. Each test episode contains 16 questions; the test split contains 800 episodes / 12,800 questions. The small `data/dev/episodes.jsonl` file is only a loader fixture.
+2. **Replay each episode chronologically.** Feed messages to the system one at a time through its memory/observe interface. At each question's `query_time`, first expose only messages whose timestamps are **strictly earlier** than that cutoff, then ask the question from the memory state it has built. The primary memory-only track does not give the raw transcript to the system when it answers. Start a fresh memory state for each episode.
+3. **Keep gold annotations out of the system input.** The JSONL stores questions and labels together for evaluation. Construct an allowlisted system input containing only the question text and permitted cutoff, plus messages available before that cutoff. Do not expose future messages, `answerability`, `gold_answer`, `acceptable_answers`, `source_message_ids`, `rubric`, category, difficulty, or other gold/episode metadata. The scorer reads the gold file separately after predictions are complete.
+4. **Write one prediction per question** to UTF-8 JSONL. Include every expected episode/question ID exactly once, with no missing or extra items. Example:
+
+   ```json
+   {"episode_id":"synthetic_test_0001","question_id":"q01","answer":"Friday","abstained":false,"evidence_message_ids":["m05"]}
+   ```
+
+   `answer` must be a string, `abstained` a Boolean, and `evidence_message_ids` an optional array of cited message IDs. Use an empty answer when abstaining. If you do not return citations, omit the evidence field; answer accuracy is still scored, while evidence metrics are unavailable for that answer.
+
+5. **Run the scorer** from the repository root. Set `--gold` to the same split used for replay:
+
+   ```bash
+   python scripts/score_predictions.py \
+     --gold data/synthetic/test/episodes.jsonl \
+     --predictions predictions.jsonl \
+     --name my-memory-system
+   ```
+
+   The report includes exact/acceptable-answer accuracy, category and answerability breakdowns, abstention precision/recall/F1 and errors, and evidence precision/recall/F1 when citations are supplied. It also computes a 95% episode-clustered bootstrap interval for category-macro accuracy. It does not judge semantic paraphrases or measure latency, token use, memory footprint, or cost; collect and report those separately. The scorer's normalization and metric definitions are in `docs/EVALUATION_PROTOCOL.md`.
+
+To compare two systems on the **same** items, pass the second JSONL with `--compare other_predictions.jsonl`; the scorer reports the paired category-macro accuracy difference and episode-clustered interval. `--per-item-out scored_items.jsonl` writes item-level outcomes. Do not compare different question sets or silently drop failed items.
+
+For fair reports, identify the memory track (memory-only is primary), model/version, code and prompt/configuration, memory limits, retries, tools, completed/failed items, and any non-default behavior. Bounded-history, recent-window, full-prefix, no-memory, and gold-evidence conditions are separate diagnostics, not interchangeable memory-system scores. There is no hosted leaderboard yet.
+
+The preparation tools use only Python's standard library (Python 3.7+). To regenerate and validate the synthetic release, run from the repository root:
 
 ```bash
 python scripts/generate_synthetic.py
