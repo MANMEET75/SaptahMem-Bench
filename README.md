@@ -26,7 +26,7 @@ SaptahMem-Bench is designed to isolate those behaviors in a controlled seven-day
 | Proposed initial test scale | 300 scenario episodes × 12 questions = 3,600 questions; separate dev and hidden test sets; final counts depend on annotation and pilot quality |
 | Languages | English first; multilingual extensions only after language-specific review |
 | Current release | Blueprint plus two illustrative dev episodes; not an official scoreable test set |
-| Repositories | [GitHub source](https://github.com/MANMEET75/SaptahMem-Bench) · [Hugging Face dataset](https://huggingface.co/datasets/MANMEET75/SaptahMem-Bench) (create after account authentication) |
+| Repositories | [GitHub source](https://github.com/MANMEET75/SaptahMem-Bench) · [Hugging Face dataset](https://huggingface.co/datasets/MANMEET75/SaptahMem-Bench) |
 
 ## What it measures
 
