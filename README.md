@@ -26,6 +26,7 @@ SaptahMem-Bench is designed to isolate those behaviors in a controlled seven-day
 | Proposed initial test scale | 300 scenario episodes × 12 questions = 3,600 questions; separate dev and hidden test sets; final counts depend on annotation and pilot quality |
 | Languages | English first; multilingual extensions only after language-specific review |
 | Current release | Blueprint plus two illustrative dev episodes; not an official scoreable test set |
+| Repositories | [GitHub source](https://github.com/MANMEET75/SaptahMem-Bench) · [Hugging Face dataset](https://huggingface.co/datasets/MANMEET75/SaptahMem-Bench) (create after account authentication) |
 
 ## What it measures
 
@@ -170,7 +171,7 @@ The blueprint and hand-authored fixture are released under the MIT License. Futu
 
 ## References
 
-- BEAM: [Benchmarking Long-Horizon Conversational Memory](https://github.com/VectorInstitute/BEAM) (verify the canonical project URL and paper citation when preparing a formal comparison).
+- BEAM: [Beyond a Million Tokens: Benchmarking and Enhancing Long-Term Memory in LLMs](https://arxiv.org/abs/2510.27246) (ICLR 2026).
 - LoCoMo: [Evaluating Very Long-Term Conversational Memory of LLM Agents](https://github.com/snap-research/locomo), ACL 2024.
 - LongMemEval: [LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory](https://github.com/xiaowu0162/LongMemEval), ICLR 2025.
 

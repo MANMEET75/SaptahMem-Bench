@@ -24,7 +24,7 @@ This dataset contains two illustrative, hand-authored fictional seven-day conver
 
 Answer each question using only messages whose timestamp is earlier than that question's `query_time`. The episodes have a 168-hour declared window, chronological timestamped messages, updates, distractor turns, and evidence labels. For unanswerable questions, state that the visible history does not provide the requested fact. Never use future messages, labels, source IDs, or outside knowledge to answer.
 
-The JSONL records are episode-level examples: each includes its messages and a list of questions. Fields and constraints are specified in `../schemas/episode.schema.json` and the benchmark protocol is in the GitHub README.
+The JSONL records are episode-level examples: each includes its messages and a list of questions. Fields and constraints are specified in [`schemas/episode.schema.json`](schemas/episode.schema.json); the full benchmark protocol is in the [GitHub README](https://github.com/MANMEET75/SaptahMem-Bench).
 
 ## Load
 
