@@ -2,7 +2,7 @@
 
 ## Release status
 
-The scripts and instructions here are preparation tools. Current fixture results are not benchmark scores. Do not run official hidden-test evaluations until a consented, reviewed, frozen test release and controlled submission service exist.
+The scripts and instructions here can score the public synthetic track. No consented, reviewed human test set or official leaderboard exists. Public synthetic test results are reproducible but are vulnerable to tuning and must be labeled synthetic; do not call them real-world scores.
 
 ## Replay contract
 
@@ -20,7 +20,7 @@ One JSON object per question, UTF-8, with these required fields:
 
 `episode_id` and `question_id` must identify one gold item. `answer` is a string (use an empty string when abstaining). `abstained` is a Boolean. `evidence_message_ids` is an optional array of cited message IDs; it is not proof of a valid explanation by itself. Do not submit confidence unless a separately versioned calibration track requests it. Missing, duplicate, extra, malformed, or non-finite outputs are errors and must be reported; the evaluator never silently drops a failed question.
 
-The public fixture is the only available gold data today. A hidden test service must accept the same prediction interface but keep gold records and detailed labels private. Submission service logs must bind predictions to a system description, code revision, prompt/configuration hash, model/version, track, run ID, and timestamp.
+Synthetic pilot/dev/test labels and the original fixture labels are currently public. A future human hidden-test service must accept the same prediction interface while keeping human-test records and detailed labels private. Submission service logs must bind predictions to a system description, code revision, prompt/configuration hash, model/version, track, run ID, and timestamp.
 
 ## Scoring
 
@@ -30,7 +30,7 @@ The planned primary comparison is macro-average accuracy across the ten primary 
 
 For semantic accuracy, use the item rubric and a fixed judge only after calibrating it against blinded human labels. Freeze judge provider/model/version, prompt, decoding, and adjudication before test scoring. Human-audit a stratified sample and every disagreement class; publish judge-human agreement and confusion. Do not let an LLM judge see system identity. Evidence precision/recall/F1 is computed only when systems return evidence; disclose uncited answers separately. Efficiency uses median/p95 latency, stored/read/generated tokens, memory footprint, tool calls, and cost per 100 questions with price date and accounting method.
 
-Use paired comparisons on identical episodes and question IDs. Resample whole episodes (not individual questions) for 95% confidence intervals and paired score differences; fix the random seed and number of bootstrap replicates in the release. Report denominators for every slice. Do not claim significance from overlapping/non-overlapping intervals alone; report the paired difference interval. Pre-register the primary comparison and 3 percentage-point target effect at two-sided alpha 0.05; use pilot data to calculate required hidden-test size for 80% power. Add hidden episodes in 100-episode blocks, keeping the 200-episode dev target fixed, up to 1,500 main episodes total (1,300 hidden) only under the predeclared rule; state detectable effect and power if capped.
+For every track, use paired comparisons on identical episodes and question IDs. Resample whole episodes (not individual questions) for 95% confidence intervals and paired score differences; fix the random seed and number of bootstrap replicates in the report. Report denominators for every slice. Do not claim significance from overlapping/non-overlapping intervals alone; report the paired difference interval. The 3 percentage-point target effect, two-sided alpha 0.05, 80% power, pilot-based size estimate, and 100-episode expansion blocks apply only to the future prospective human track. The synthetic track is not a sample of human users and must not use that power calculation to claim population inference.
 
 ## Required comparison baselines
 

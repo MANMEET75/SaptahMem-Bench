@@ -18,20 +18,21 @@ def normalize(value):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("data", type=Path, help="combined split JSONL")
+    parser.add_argument("data", type=Path, nargs="+", help="one or more split JSONL files")
     parser.add_argument("--strict", action="store_true", help="exit non-zero if any exact overlap is flagged")
     args = parser.parse_args()
     episodes = []
-    with args.data.open("r", encoding="utf-8") as handle:
-        for line_no, line in enumerate(handle, 1):
-            if not line.strip():
-                print("line %d: blank line" % line_no, file=sys.stderr)
-                return 2
-            try:
-                episodes.append(json.loads(line))
-            except json.JSONDecodeError as exc:
-                print("line %d: invalid JSON: %s" % (line_no, exc), file=sys.stderr)
-                return 2
+    for data_path in args.data:
+        with data_path.open("r", encoding="utf-8") as handle:
+            for line_no, line in enumerate(handle, 1):
+                if not line.strip():
+                    print("%s:%d: blank line" % (data_path, line_no), file=sys.stderr)
+                    return 2
+                try:
+                    episodes.append(json.loads(line))
+                except json.JSONDecodeError as exc:
+                    print("%s:%d: invalid JSON: %s" % (data_path, line_no, exc), file=sys.stderr)
+                    return 2
     episode_splits = defaultdict(set)
     questions = defaultdict(list)
     messages = defaultdict(list)

@@ -1,0 +1,139 @@
+{
+  "name": "SaptahMem-Bench Synthetic Track",
+  "version": "0.3.0-synthetic-prep",
+  "data_origin": "programmatic_synthetic",
+  "seed": 20261025,
+  "episodes_per_split": {
+    "pilot": 50,
+    "dev": 200,
+    "test": 800
+  },
+  "questions_per_episode": 16,
+  "question_counts_per_split": {
+    "pilot": 800,
+    "dev": 3200,
+    "test": 12800
+  },
+  "domain_counts_per_split": {
+    "pilot": {
+      "community_event": 6,
+      "errand_planning": 6,
+      "hobby_project": 6,
+      "home_organization": 7,
+      "learning": 6,
+      "meal_planning": 6,
+      "travel_planning": 7,
+      "work_planning": 6
+    },
+    "dev": {
+      "community_event": 25,
+      "errand_planning": 25,
+      "hobby_project": 25,
+      "home_organization": 25,
+      "learning": 25,
+      "meal_planning": 25,
+      "travel_planning": 25,
+      "work_planning": 25
+    },
+    "test": {
+      "community_event": 100,
+      "errand_planning": 100,
+      "hobby_project": 100,
+      "home_organization": 100,
+      "learning": 100,
+      "meal_planning": 100,
+      "travel_planning": 100,
+      "work_planning": 100
+    }
+  },
+  "category_counts_per_split": {
+    "pilot": {
+      "abstention": 200,
+      "cross_session_binding": 100,
+      "distraction_resistance": 50,
+      "entity_binding": 50,
+      "ephemeral_intent": 50,
+      "episodic_recall": 100,
+      "preference_scope": 50,
+      "state_update": 50,
+      "temporal_recency": 100,
+      "window_boundary": 50
+    },
+    "dev": {
+      "abstention": 800,
+      "cross_session_binding": 400,
+      "distraction_resistance": 200,
+      "entity_binding": 200,
+      "ephemeral_intent": 200,
+      "episodic_recall": 400,
+      "preference_scope": 200,
+      "state_update": 200,
+      "temporal_recency": 400,
+      "window_boundary": 200
+    },
+    "test": {
+      "abstention": 3200,
+      "cross_session_binding": 1600,
+      "distraction_resistance": 800,
+      "entity_binding": 800,
+      "ephemeral_intent": 800,
+      "episodic_recall": 1600,
+      "preference_scope": 800,
+      "state_update": 800,
+      "temporal_recency": 1600,
+      "window_boundary": 800
+    }
+  },
+  "answerability_counts_per_split": {
+    "pilot": {
+      "ambiguous": 50,
+      "answerable": 600,
+      "unanswerable": 150
+    },
+    "dev": {
+      "ambiguous": 200,
+      "answerable": 2400,
+      "unanswerable": 600
+    },
+    "test": {
+      "ambiguous": 800,
+      "answerable": 9600,
+      "unanswerable": 2400
+    }
+  },
+  "difficulty_counts_per_split": {
+    "pilot": {
+      "easy": 150,
+      "hard": 200,
+      "medium": 450
+    },
+    "dev": {
+      "easy": 600,
+      "hard": 800,
+      "medium": 1800
+    },
+    "test": {
+      "easy": 2400,
+      "hard": 3200,
+      "medium": 7200
+    }
+  },
+  "contains_real_participant_data": false,
+  "generation_note": "Deterministic template-driven fictional conversations. Useful for controlled tooling and system comparisons only; not evidence of real-user performance.",
+  "files": {
+    "data/synthetic/pilot/episodes.jsonl": {
+      "sha256": "a64c9c28f1b2672f8e78dbde611c4fa0b865cce91b1a0e9fefb09e0c577f2170",
+      "bytes": 589306
+    },
+    "data/synthetic/dev/episodes.jsonl": {
+      "sha256": "ffedd742c855b11d0ebe2d9cedaab748263594c0b9f6dc7be42526440a008cb3",
+      "bytes": 2404461
+    },
+    "data/synthetic/test/episodes.jsonl": {
+      "sha256": "4c95dbd2e6341ec702556f63ba3027331d884b7f2119b882a2b054b8dd9ee01d",
+      "bytes": 9673196
+    }
+  },
+  "total_episodes": 1050,
+  "total_questions": 16800
+}

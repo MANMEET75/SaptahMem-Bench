@@ -2,7 +2,7 @@
 
 **A benchmark and study protocol for short-horizon conversational memory in assistants.**
 
-> **Status: protocol and development fixture (v0.2.0-prep).** This repository contains a prospective human-study protocol, annotation and privacy workflows, validation/scoring utilities, and two fictional examples for loader checks. No participant study has been run, no participant conversations are included, and there is no validated test set, leaderboard, or model-performance claim. The fixture is not suitable for system comparisons.
+> **Status: synthetic benchmark plus prospective-study protocol (v0.3.0-synthetic-prep).** The repository now contains a reproducible programmatic synthetic track with 50 pilot, 200 dev, and 800 test episodes (16,800 synthetic questions), as well as two hand-authored loader examples. No participant study has been run and no participant conversations are included. Synthetic data are highly templated and do not establish real-world performance; no model baseline or validated real-world score is available.
 
 SaptahMem-Bench evaluates whether an assistant can preserve, update, retrieve, combine, and appropriately decline to answer facts across a bounded **seven-day conversational window**. The focus is short-term episodic memory: information that should remain available over several days but may later expire or be superseded.
 
@@ -25,8 +25,9 @@ SaptahMem-Bench is designed to isolate those behaviors in a controlled seven-day
 | Intended systems | Memory-augmented assistants, full-history baselines, rolling-window baselines, summaries, retrieval systems, and no-memory controls |
 | Planned study | 50-episode pilot followed by 1,000 main episodes (200 public dev, 800 hidden test); power analysis may expand the main release in fixed 100-episode blocks up to 1,500 total |
 | Planned questions | 16 per main episode (12 answerable, 4 unanswerable or ambiguous target); approximately 16,000 total |
+| Available synthetic track | 50 pilot + 200 dev + 800 test = 1,050 episodes and 16,800 questions; all splits are public and labels are visible |
 | Languages | English first; multilingual extensions only after language-specific review |
-| Current release | Study/evaluation protocol plus two fictional dev fixture episodes; not an official scoreable test set |
+| Current release | Public synthetic track plus two separate fictional loader examples; no participant data or official real-world leaderboard |
 | Repositories | [GitHub source](https://github.com/MANMEET75/SaptahMem-Bench) · [Hugging Face dataset](https://huggingface.co/datasets/MANMEET75/SaptahMem-Bench) |
 
 ## What it measures
@@ -45,6 +46,12 @@ The proposed question set uses a balanced taxonomy. Categories are multi-label w
 10. **Window boundary and expiry** — test facts just inside and outside the declared retention window in dedicated boundary probes. These probes must never silently change the primary seven-day task definition.
 
 A strong benchmark contains answerable, ambiguous, contradicted, and genuinely unanswerable questions. It must not reward confident guessing.
+
+## Current synthetic track
+
+`data/synthetic/` contains the generated 50-episode pilot, 200-episode dev split, and 800-episode test split. Each episode has 16 questions and an explicit `data_origin: programmatic_synthetic` marker. All three splits and labels are public, so the test is reproducible but not secret. The generator is deterministic and publishes a seed and per-file checksums in `data/synthetic/manifest.json`.
+
+This controlled synthetic set is useful for testing memory features and comparing systems on the same generated cases. Its conversations follow hand-written templates; exact string variation does not make them equivalent to human dialogue. Scores describe performance on this synthetic generator only. They cannot establish real-user generalization, product readiness, or which system will perform best in deployment. See `docs/SYNTHETIC_TRACK.md` for the full data statement and limits.
 
 ## Proposed protocol
 
@@ -110,7 +117,7 @@ Primary score (planned): macro-average per-question accuracy across the ten cate
 
 ## Data design and quality control
 
-### Target composition (planned)
+### Prospective human-study target composition (not collected)
 
 - Pilot: 50 prospective episodes, used only to debug recruitment, privacy, annotation, schema, scoring, and power estimates.
 - Main release target: 200 public dev + 800 hidden test episodes (1,000 total); add hidden episodes in blocks of 100 to a maximum of 1,500 if the preregistered power/precision target is unmet.
@@ -135,11 +142,14 @@ Use fictional or consented data only. Never publish scraped private conversation
 ## Files and format
 
 - `data/dev/episodes.jsonl` — small, illustrative development fixture.
+- `data/synthetic/{pilot,dev,test}/episodes.jsonl` — 50/200/800 deterministic synthetic episodes; the public synthetic test includes labels.
+- `data/synthetic/manifest.json` — generator seed, counts, checksums, and data-origin statement.
 - `schemas/episode.schema.json` — JSON Schema for an episode record.
 - `docs/BENCHMARK_PLAN.md` — implementation phases, governance, and release gates.
 - `docs/DATA_CARD.md` — data statement template and required disclosures.
 - `docs/STUDY_PROTOCOL.md` — prospective collection, privacy, withdrawal, and release workflow.
 - `docs/CONSENT_TEMPLATE.md` — participant information and separate participation/publication choices (draft only; approval required).
+- `docs/SYNTHETIC_TRACK.md` — synthetic data statement, limitations, usage, and reproduction instructions.
 - `docs/ANNOTATION_GUIDE.md` — blinded prefix-only authoring and review instructions.
 - `docs/EVALUATION_PROTOCOL.md` — prediction interface, baselines, scoring, and reporting.
 - `scripts/` — standard-library dataset validation, leakage checks, and deterministic scoring tools.
@@ -152,13 +162,18 @@ The proposed JSONL schema contains `episode_id`, `split`, `start_time`, `duratio
 The preparation tools use only Python's standard library (Python 3.7+). From the repository root:
 
 ```bash
+python scripts/generate_synthetic.py
+python scripts/validate_dataset.py --expect-synthetic-release \
+  data/synthetic/pilot/episodes.jsonl data/synthetic/dev/episodes.jsonl data/synthetic/test/episodes.jsonl
+python scripts/audit_leakage.py data/synthetic/pilot/episodes.jsonl \
+  data/synthetic/dev/episodes.jsonl data/synthetic/test/episodes.jsonl --strict
 python scripts/validate_dataset.py data/dev/episodes.jsonl
 python scripts/audit_leakage.py data/dev/episodes.jsonl
 python -m unittest discover -s tests -v
-python scripts/score_predictions.py --gold data/dev/episodes.jsonl --predictions predictions.jsonl
+python scripts/score_predictions.py --gold data/synthetic/test/episodes.jsonl --predictions predictions.jsonl
 ```
 
-Prediction JSONL format and scorer limitations are documented in `docs/EVALUATION_PROTOCOL.md`. Use only public dev labels locally; do not place hidden test labels or participant data in Git or Hugging Face. The leakage scanner reports hashes and IDs, not matched text, and only detects exact normalized reuse; a clean scan is not proof of split independence.
+Prediction JSONL format and scorer limitations are documented in `docs/EVALUATION_PROTOCOL.md`. The synthetic test labels are public and permit reproducible local scoring, but are not secure against tuning. Do not place future hidden participant-test labels or private participant data in Git or Hugging Face. The leakage scanner reports hashes and IDs, not matched text, and only detects exact normalized reuse; a clean scan is not proof of split independence.
 
 ## Reproducible reporting checklist
 
@@ -176,14 +191,14 @@ A result report must include:
 
 ## Limitations
 
-A seven-day window is one useful operational definition, not a universal boundary for short-term memory. The present fixture is fictional and cannot establish real-world behavior. A future prospective study may still reflect participation effects, assistant-specific interaction patterns, English-first recruitment, and privacy-related public-release exclusions. LLM judges can be inconsistent, so calibrate against human labels before leaderboard use. A memory score also reflects the answering model, prompts, and context budget. SaptahMem-Bench should complement long-term evaluations, not replace them.
+A seven-day window is one useful operational definition, not a universal boundary for short-term memory. The current synthetic data are highly templated and cannot establish real-world behavior. A future prospective study may still reflect participation effects, assistant-specific interaction patterns, English-first recruitment, and privacy-related public-release exclusions. LLM judges can be inconsistent, so calibrate against human labels before leaderboard use. A memory score also reflects the answering model, prompts, and context budget. SaptahMem-Bench should complement long-term evaluations, not replace them.
 
 ## Roadmap
 
-1. **Protocol preparation (this release):** publish study and annotation protocols, evaluator scripts, schema, and fictional fixture. No participant data or claims.
-2. **Pilot:** recruit and review 50 consented episodes; estimate annotation reliability, natural category coverage, collection burden, and statistical power; revise and preregister.
-3. **Public development release:** collect, review, and publish up to 200 permitted, de-identified dev episodes with evaluator and baseline outputs.
-4. **Decision-grade v1:** freeze 800 or power-adjusted hidden test episodes, run paired evaluation, publish audit and confidence intervals, licenses, checksums, and controlled-submission procedure.
+1. **Synthetic preparation (this release):** publish the deterministic 50/200/800 synthetic track, manifest, evaluator, and clear synthetic limitations. It is public and not a hidden leaderboard set.
+2. **Prospective pilot (future):** recruit and review 50 consented episodes; estimate annotation reliability, natural category coverage, collection burden, and statistical power; revise and preregister.
+3. **Human public development (future):** collect, review, and publish up to 200 permitted, de-identified dev episodes with evaluator and baseline outputs.
+4. **Human decision-grade v1 (future):** freeze 800 or power-adjusted hidden test episodes, run paired evaluation, publish audit and confidence intervals, licenses, checksums, and controlled-submission procedure.
 5. **Extensions:** multilingual tracks, multimodal short-term memory, personalized retention/forgetting, and interactive follow-up tasks—each as a separately reported track.
 
 ## Citation

@@ -5,10 +5,11 @@
   "description": "One seven-day short-horizon conversational-memory episode with chronological messages and questions at explicit cutoffs. Source provenance and consent conditions are documented at the release level; participant identifiers must never appear in episode records.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["episode_id", "split", "start_time", "duration_hours", "scenario_domain", "language", "messages", "questions"],
+  "required": ["episode_id", "split", "data_origin", "start_time", "duration_hours", "scenario_domain", "language", "messages", "questions"],
   "properties": {
     "episode_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]+$"},
     "split": {"enum": ["dev", "pilot", "test"]},
+    "data_origin": {"enum": ["hand_authored_fictional", "programmatic_synthetic", "consented_prospective"]},
     "start_time": {"type": "string", "format": "date-time", "pattern": "Z$"},
     "duration_hours": {"const": 168},
     "scenario_domain": {"type": "string", "minLength": 2},

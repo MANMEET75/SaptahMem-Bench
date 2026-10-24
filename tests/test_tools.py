@@ -62,6 +62,25 @@ class ToolTests(unittest.TestCase):
         report = json.loads(result.stdout)
         self.assertEqual(report["episodes"], 2)
 
+    def test_synthetic_generator_is_deterministic_and_marked(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "synthetic"
+            args = ("--output-root", root, "--seed", "17", "--pilot", "1", "--dev", "1", "--test", "1")
+            first = self.run_script("generate_synthetic.py", *args)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            paths = [root / split / "episodes.jsonl" for split in ("pilot", "dev", "test")]
+            first_bytes = [path.read_bytes() for path in paths]
+            second = self.run_script("generate_synthetic.py", *args)
+            self.assertEqual(second.returncode, 0, second.stderr)
+            self.assertEqual(first_bytes, [path.read_bytes() for path in paths])
+            for path, split in zip(paths, ("pilot", "dev", "test")):
+                record = json.loads(path.read_text(encoding="utf-8").strip())
+                self.assertEqual(record["data_origin"], "programmatic_synthetic")
+                self.assertEqual(record["split"], split)
+                self.assertEqual(len(record["questions"]), 16)
+            checked = self.run_script("validate_dataset.py", *paths)
+            self.assertEqual(checked.returncode, 0, checked.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

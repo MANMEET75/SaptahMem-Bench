@@ -2,11 +2,19 @@
 
 ## Current status
 
-**No baseline has been run.** The repository currently contains only two fictional loader-fixture episodes and four questions. Their size and public labels make them unsuitable for model comparisons, confidence intervals, or performance claims. This page intentionally contains no invented scores.
+**No model baseline has been run.** The public synthetic test now contains 800 episodes and 12,800 questions, but it is highly templated and not a real-user evaluation. A deterministic always-abstain sanity check was scored to confirm that abstention alone is not competitive. No LLM or memory system has been evaluated.
+
+### Deterministic metric sanity check
+
+| System | Episodes | Questions | Macro category accuracy | Micro accuracy | Note |
+|---|---:|---:|---:|---:|---|
+| Always abstain | 800 | 12,800 | 0.10 | 0.25 | Correct only on the abstention-required category/items; not a memory-system baseline |
+
+This is a metric sanity check on public synthetic labels, not evidence of model quality. It was scored without bootstrap intervals and must not be cited as a real-world benchmark score. No baseline model has been run.
 
 ## Planned baseline report
 
-Complete this report only after a reviewed pilot/dev set and fixed evaluator are available. Baseline runs should use the same allowed prefixes, query set, answer model/settings where applicable, and prediction interface. Use hidden-test results only after the test is frozen and the controlled submission process is active.
+Run model baselines first on the synthetic test for controlled debugging, label all results synthetic, and avoid population claims. Complete the decision-grade human report only after a reviewed prospective pilot/dev set, preregistered analysis, and fixed evaluator are available. Baseline runs should use the same allowed prefixes, query set, answer model/settings where applicable, and prediction interface. Use future human hidden-test results only after the test is frozen and the controlled submission process is active.
 
 Required systems: query-only/no-memory; always-abstain sanity check; last-N and token-matched recent-window; rolling session summary; raw-message retrieval; structured facts with update/provenance support; full permitted prefix (context upper bound); and gold-evidence answerer (answering diagnostic). Report each in its own labeled track.
 

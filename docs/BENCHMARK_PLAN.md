@@ -2,11 +2,12 @@
 
 ## Objective and current state
 
-SaptahMem-Bench is intended to compare short-term conversational memory systems on natural, consented conversations spanning seven days. The current release is protocol preparation only: two fictional episodes/four questions, no human-collected data, no reviewed test set, and no performance claims. This file is a plan, not evidence that a study or release has occurred.
+SaptahMem-Bench has two distinct tracks: an available public, programmatic synthetic suite for controlled comparisons and a future prospective, consented human track for ecological validity. Current repository data include the synthetic suite (50/200/800 episodes, 16,800 questions) plus two fictional loader examples. No human study or model baseline has been run; synthetic scores are not real-world claims.
 
 ## Frozen design choices
 
 - Primary horizon: 168 consecutive hours from episode start; timestamps in UTC.
+- Synthetic data: deterministic, public, and fully labeled; 50 pilot + 200 dev + 800 test episodes, 16 questions each. The synthetic test is public, not hidden.
 - Study source: prospective English-language use of a frozen, text-only study assistant for participants' ordinary, self-chosen needs; no scripted benchmark fact tasks.
 - Cohort: one participant and one episode per record. Separate 50-person pilot; 1,000 main episodes initially (200 public dev, 800 hidden test), with preregistered 100-episode expansion blocks to at most 1,500 main episodes total (200 dev plus up to 1,300 hidden test).
 - Questions: target 16 per main episode (normally 12 answerable and four unanswerable/ambiguous); all ten skill categories represented across the release, without forcing unnatural episode-level quotas.
@@ -22,7 +23,13 @@ Deliver this protocol, draft participant information/consent materials, annotati
 
 **Gate:** scripts run on current fixtures; protocol and current-data claims agree across GitHub and Hugging Face; risk and privacy limitations are explicit.
 
-### Phase 1 — Prospective pilot (50 participants/episodes)
+### Phase 0.5 — Synthetic track (current)
+
+Generate the fixed-seed synthetic pilot/dev/test corpus with `scripts/generate_synthetic.py`. Each record is marked `programmatic_synthetic`; publish the manifest, counts, checksums, generator, schema, evaluator, and limitations. Validate the complete splits and audit exact cross-split reuse. Keep the synthetic pilot separate from any future participant pilot. The public synthetic test is intended for controlled reproducible comparisons and is not protected from tuning.
+
+**Gate:** exactly 50/200/800 episodes and 16 questions each; records validate; evidence references are strictly pre-cutoff; exact-overlap audit passes; generation is reproducible; user-facing docs state there is no participant data or real-world claim. No human annotation, naturalness review, or neural baseline result is implied.
+
+### Phase 1 — Prospective human pilot (separate 50 participants/episodes)
 
 Obtain ethics/IRB determination and security/data-protection approval before recruitment. Freeze assistant and participant materials. Run one 168-hour episode per participant, separate participation and public-release consent, and train study staff. Test opt-in flow, pause/withdrawal, logging minimization, privacy review, annotation load, category naturalness, query difficulty, agreement, and baseline feasibility. Pilot episodes are not part of main v1 scores.
 
@@ -30,7 +37,7 @@ Estimate question/episode variance, within-episode correlation, missingness, hum
 
 **Gate:** no unresolved privacy incident; collection and withdrawal work end-to-end; annotator agreement and adjudication are documented; leakage audit and baseline sanity checks pass; protocol and power calculation are preregistered.
 
-### Phase 2 — Main data collection and public dev
+### Phase 2 — Main human data collection and public dev
 
 Recruit 1,000 distinct participants initially, aiming to publish 200 cleared dev episodes and retain 800 test episodes. Maintain one participant per episode and disjoint participant IDs across pilot/dev/test. Preserve natural variation in active days, session gaps, message volume, and everyday domains; report these distributions. Do not induce facts or query topics to fill category quotas.
 

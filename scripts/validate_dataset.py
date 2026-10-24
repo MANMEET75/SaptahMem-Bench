@@ -22,10 +22,10 @@ def parse_utc(value, where, errors):
 
 def validate_episode(ep, line_no):
     errors = []
-    where = "line %d" % line_no
+    where = "line %s" % line_no
     if not isinstance(ep, dict):
         return [where + ": record must be a JSON object"]
-    required = ["episode_id", "split", "start_time", "duration_hours", "scenario_domain", "language", "messages", "questions"]
+    required = ["episode_id", "split", "data_origin", "start_time", "duration_hours", "scenario_domain", "language", "messages", "questions"]
     for key in required:
         if key not in ep:
             errors.append("%s: missing required field %s" % (where, key))
@@ -37,6 +37,8 @@ def validate_episode(ep, line_no):
         errors.append("%s: unknown episode fields %s" % (where, sorted(unknown)))
     if ep["split"] not in ("dev", "pilot", "test"):
         errors.append(where + ": split must be dev, pilot, or test")
+    if ep["data_origin"] not in ("hand_authored_fictional", "programmatic_synthetic", "consented_prospective"):
+        errors.append(where + ": data_origin must identify fictional, synthetic, or consented prospective source")
     if not isinstance(ep.get("episode_id"), str) or not re.match(r"^[a-z0-9][a-z0-9_-]+$", ep.get("episode_id", "")):
         errors.append(where + ": episode_id must match ^[a-z0-9][a-z0-9_-]+$")
     if not isinstance(ep.get("scenario_domain"), str) or len(ep.get("scenario_domain", "")) < 2:
@@ -157,35 +159,42 @@ def validate_episode(ep, line_no):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("data", type=Path, help="UTF-8 JSONL file; one episode object per line")
+    parser.add_argument("data", type=Path, nargs="+", help="one or more UTF-8 JSONL files; one episode per line")
     parser.add_argument("--expect-main-release", action="store_true", help="require exactly 200 dev and 800 test episodes, with 16 questions per episode")
+    parser.add_argument("--expect-synthetic-release", action="store_true", help="require exactly 50 pilot, 200 dev, and 800 test synthetic episodes, with 16 questions each")
     args = parser.parse_args()
     all_errors = []
     counts = {"dev": 0, "pilot": 0, "test": 0}
     seen_episode_ids = set()
-    with args.data.open("r", encoding="utf-8") as handle:
-        for line_no, line in enumerate(handle, 1):
-            if not line.strip():
-                all_errors.append("line %d: blank JSONL line" % line_no)
-                continue
-            try:
-                episode = json.loads(line)
-            except json.JSONDecodeError as exc:
-                all_errors.append("line %d: invalid JSON: %s" % (line_no, exc))
-                continue
-            all_errors.extend(validate_episode(episode, line_no))
-            if isinstance(episode, dict):
-                split = episode.get("split")
-                if split in counts:
-                    counts[split] += 1
-                eid = episode.get("episode_id")
-                if eid in seen_episode_ids:
-                    all_errors.append("line %d: duplicate episode_id %r" % (line_no, eid))
-                seen_episode_ids.add(eid)
-                if args.expect_main_release and len(episode.get("questions", [])) != 16:
-                    all_errors.append("line %d: main release requires 16 questions per episode" % line_no)
+    for data_path in args.data:
+        with data_path.open("r", encoding="utf-8") as handle:
+            for line_no, line in enumerate(handle, 1):
+                location = "%s:%d" % (data_path, line_no)
+                if not line.strip():
+                    all_errors.append(location + ": blank JSONL line")
+                    continue
+                try:
+                    episode = json.loads(line)
+                except json.JSONDecodeError as exc:
+                    all_errors.append(location + ": invalid JSON: %s" % exc)
+                    continue
+                all_errors.extend(validate_episode(episode, location))
+                if isinstance(episode, dict):
+                    split = episode.get("split")
+                    if split in counts:
+                        counts[split] += 1
+                    eid = episode.get("episode_id")
+                    if eid in seen_episode_ids:
+                        all_errors.append(location + ": duplicate episode_id %r" % eid)
+                    seen_episode_ids.add(eid)
+                    if (args.expect_main_release or args.expect_synthetic_release) and len(episode.get("questions", [])) != 16:
+                        all_errors.append(location + ": release target requires 16 questions per episode")
+                    if args.expect_synthetic_release and episode.get("data_origin") != "programmatic_synthetic":
+                        all_errors.append(location + ": synthetic release records must be marked programmatic_synthetic")
     if args.expect_main_release and (counts["dev"] != 200 or counts["test"] != 800 or counts["pilot"] != 0):
         all_errors.append("main release counts must be dev=200, test=800, pilot=0; found %s" % counts)
+    if args.expect_synthetic_release and (counts["pilot"] != 50 or counts["dev"] != 200 or counts["test"] != 800):
+        all_errors.append("synthetic release counts must be pilot=50, dev=200, test=800; found %s" % counts)
     if all_errors:
         print("Dataset validation failed (%d issue(s)):" % len(all_errors), file=sys.stderr)
         for item in all_errors:

@@ -4,79 +4,82 @@ language:
   - en
 task_categories:
   - question-answering
-pretty_name: SaptahMem-Bench (Protocol and Fixture)
+pretty_name: SaptahMem-Bench Synthetic Track
 tags:
   - conversational-memory
   - short-term-memory
   - benchmark
   - synthetic-data
 size_categories:
-  - n<1K
+  - 1K<n<10K
 ---
 
 # SaptahMem-Bench
 
-**A benchmark and prospective study protocol for seven-day conversational memory.**
+**A seven-day conversational-memory benchmark with a public synthetic track and a separate proposed human-study track.**
 
-> **Current status: protocol and development fixture only (0.2.0-prep).** This dataset repository currently contains two fictional hand-authored episodes and four questions. No human-participant study has been run; there is no real-world dataset, validated test set, leaderboard, or model-performance result. Do not use the fixture to compare systems or make statistical/generalization claims.
+> **Current data status:** 50 synthetic pilot episodes, 200 synthetic dev episodes, and 800 synthetic test episodes; 16 questions per episode (16,800 synthetic questions total). The original hand-authored loader fixture remains separate: two episodes/four questions. **No participant study or real-world conversational data has been collected.** Synthetic dialogue is template-driven and does not establish real-user performance or product readiness.
 
-SaptahMem-Bench is designed to evaluate whether a system can retain and update conversational information over a bounded **168-hour** window, retrieve the right value at a query cutoff, respect the scope of temporary intent, bind facts to the right entity, and abstain when evidence is missing. It complements long-horizon conversational memory benchmarks; it does not claim a universal definition of short-term memory.
+SaptahMem-Bench tests memory over a bounded **168-hour** window: recall, cross-session binding, updates, recency, temporary preference scope, commitments, entity binding, distraction resistance, and grounded abstention. It is designed as a short-horizon complement to long-horizon conversation-memory evaluations.
 
-## Current contents
+## Files and splits
 
-- `data/dev/episodes.jsonl`: two fictional loader-fixture episodes with four questions total.
-- `schemas/episode.schema.json`: episode JSON Schema.
-- `LICENSE`: applies to this blueprint and current fictional fixture. It does not automatically apply to future participant data.
-- `docs/`: study protocol, draft consent information, annotation instructions, evaluation protocol, data card, release gates, and baseline-results status.
-- `scripts/`: offline data validator, exact-overlap triage, and deterministic scorer. These are preparation tools; no baseline model has been run.
-- Full protocol, study and annotation procedures, evaluator scripts, and data card: [GitHub repository](https://github.com/MANMEET75/SaptahMem-Bench).
+- `data/synthetic/pilot/episodes.jsonl`: 50 synthetic pilot episodes / 800 questions.
+- `data/synthetic/dev/episodes.jsonl`: 200 public synthetic development episodes / 3,200 questions.
+- `data/synthetic/test/episodes.jsonl`: 800 public synthetic test episodes / 12,800 questions. Test labels are public; this is **not** a hidden or leakage-resistant leaderboard split.
+- `data/synthetic/manifest.json`: generation seed, split counts, byte sizes, and SHA-256 checksums.
+- `data/dev/episodes.jsonl`: two separate hand-authored fictional loader examples / four questions.
+- `schemas/episode.schema.json`: schema, including the required `data_origin` field.
+- `scripts/`: deterministic generator, validator, overlap audit, and scorer.
+- `docs/`: synthetic data statement, study/consent drafts, annotation/evaluation manuals, plan, and baseline status.
+- [GitHub source](https://github.com/MANMEET75/SaptahMem-Bench): full source, tests, and release history.
 
-One JSONL line is one episode. Episodes contain a UTC start time, a 168-hour duration, chronological user/assistant messages, and questions with cutoff timestamps and gold annotations. Question evidence IDs, answers, acceptable variants, and rubrics are evaluation-only; never expose them to the system being tested.
+## Synthetic data construction
 
-## Planned prospective study (not collected yet)
+The corpus is generated deterministically by `scripts/generate_synthetic.py`, default seed `20261025`. It uses hand-written templates and controlled fictional values; it does not use user chat logs, participants, or LLM-generated dialogue. The eight scenario domains are travel, home organization, learning, hobbies, community events, work planning, errands, and meal planning. Split-specific lexical pools and wording families are used, but all splits share a controlled scenario structure and remain highly templated.
 
-The planned real-world data source is prospective, consented, English-language use of a fixed text study assistant for participants' ordinary, self-chosen needs over seven days. Participants will not receive scripted fact-sharing tasks or question templates. The collection assistant will be frozen, have persistent cross-session memory disabled, and collect only text, UTC timestamps, and session boundaries. No audio, location, contacts, or tool/web history are planned.
+Episodes contain timestamped messages over six sessions and 16 labeled questions. The questions cover ten primary categories, including current versus superseded values, one-time preferences, commitments, multi-turn entity binding, distractions, late-window recall, and unanswerable/ambiguous requests. Gold evidence IDs must refer to messages strictly before the query cutoff. Every synthetic row is marked `data_origin: programmatic_synthetic`.
 
-The target is 50 pilot episodes, not scored, followed by 1,000 main episodes from 1,000 distinct participants: 200 public development episodes and 800 hidden-test episodes. Target 16 questions per main episode (normally 12 answerable and four unanswerable/ambiguous). A preregistered pilot-based power analysis may add hidden-test episodes in fixed blocks of 100, up to 1,500 main episodes total (200 dev and at most 1,300 hidden test). These are plans only, not current dataset contents or guarantees of statistical power.
+## Use and limits
 
-Public development transcripts and labels will be released only if the participant explicitly consents to public data release and each episode passes redaction, independent privacy review, rights, and re-identification checks. Participation consent alone is insufficient. Hidden-test conversations, questions, and labels will remain under controlled evaluation. Episodes that do not pass public-release gates will be excluded from the public split. The full study and withdrawal procedures are in `docs/STUDY_PROTOCOL.md`; the participant information/consent file is a draft, not an approved form. Ethics/privacy/legal review and applicable institutional approval are required before recruitment.
+The synthetic data can support adapter checks, deterministic regression tests, and controlled comparisons on this generator's distribution. Because all splits and labels are public, systems may be tuned to them. Exact string-overlap checks do not prove semantic independence, and template variation does not make the dialogue naturalistic. Report results explicitly as **synthetic-track scores**; do not infer real-user behavior, population needs, deployment readiness, or real-world system rankings from them.
 
-## Skills and evaluation
+No human naturalness review, annotator-agreement study, power analysis, or model baseline has been completed. A deterministic always-abstain metric sanity check (0.10 category-macro accuracy and 0.25 micro accuracy on synthetic test) is documented in `docs/BASELINE_RESULTS.md`; no memory model was tested.
 
-The proposed taxonomy covers recent episodic recall, cross-session binding, temporal ordering/recency, state updates, ephemeral intent, preference scope, entity/speaker binding, distractor resistance, unanswerable/ambiguous questions, and separately reported window-boundary probes. Coverage is reported as observed; category quotas must not produce unnatural conversations.
-
-The primary evaluation replays each episode chronologically. A system observes every message once and answers questions using only messages strictly earlier than the cutoff. The primary memory-only track gives no raw transcript at query time. Report bounded-transcript, recent-window, full-prefix, no-memory, and gold-evidence diagnostics separately; full-prefix and oracle-evidence are not memory leaderboard scores.
-
-The planned headline is macro-average per-question accuracy over primary skill categories, with micro accuracy and answerable/unanswerable/ambiguous strata reported too. The included scorer currently computes exact/acceptable-answer matches and abstention correctness; it does not determine semantic equivalence. Semantic scoring requires a frozen rubric/judge calibrated against blinded human labels. Compare systems on identical episodes, use paired episode-clustered confidence intervals, and disclose counts, failures, prompts, model versions, memory budgets, latency, token use, and costs.
-
-## Load the current fixture
+## Load the public synthetic splits
 
 ```python
 from datasets import load_dataset
 
-ds = load_dataset(
-    "json",
-    data_files="https://huggingface.co/datasets/MANMEET75/SaptahMem-Bench/resolve/main/data/dev/episodes.jsonl",
-)
-print(len(ds["train"]))  # currently 2 fictional episodes
+base = "https://huggingface.co/datasets/MANMEET75/SaptahMem-Bench/resolve/main/data/synthetic"
+ds = load_dataset("json", data_files={
+    "pilot": f"{base}/pilot/episodes.jsonl",
+    "dev": f"{base}/dev/episodes.jsonl",
+    "test": f"{base}/test/episodes.jsonl",
+})
+print(len(ds["test"]))  # 800 public synthetic episodes
 ```
 
-## Data, risks, and limitations
+For evaluation, replay each message once in timestamp order and answer using only the system state built from messages strictly before each cutoff. Never provide gold answers, evidence IDs, rubrics, or future turns to the evaluated system. The scorer, exact-match normalization, abstention policy, and confidence-interval method are documented in `docs/EVALUATION_PROTOCOL.md`.
 
-No participants or private chat data are represented in the current fixture. Its tiny size, fictional wording, and public labels make it unsuitable for score claims. Future data may reflect study-participation and assistant-specific effects, English-first recruitment, category imbalance, and exclusions required for privacy. This benchmark does not certify product readiness or safety and is not intended for high-stakes medical, legal, financial, or other advice.
+To regenerate from the source repository, run `python scripts/generate_synthetic.py`; compare the resulting manifest checksums. Validate the three files with `scripts/validate_dataset.py --expect-synthetic-release` and run `scripts/audit_leakage.py` across all splits. An audit pass detects exact normalized reuse only, not semantic/template leakage.
 
-The current blueprint, tools, and fixture carry MIT terms. Future participant releases may have distinct terms and will only be published under a license compatible with consent and rights review. **No baselines have been run and no benchmark scores are available.** Version data and code, publish checksums, and never silently overwrite a scored release. Report issues via [GitHub](https://github.com/MANMEET75/SaptahMem-Bench); do not post participant text in public issues.
+## Separate prospective human track (planned, not collected)
 
-## Citation
+A future track is planned from prospective, consented English use of a frozen text assistant for ordinary self-chosen needs over seven days. Its targets are a separate 50-person pilot and 1,000 main episodes (200 public dev, 800 hidden test), with a pilot-based preregistered power analysis and possible expansion to 1,500 total. These targets are not the synthetic episodes above.
 
-No validated benchmark paper exists yet. Until publication, cite the repository release and immutable revision. Do not describe the current fixture as a validated benchmark.
+Human collection requires applicable ethics/IRB and privacy/security review before recruitment. Participation consent and public transcript-release consent must be separate; public release also requires redaction, independent privacy and re-identification review, and rights approval. The current repository contains only draft materials. Do not mix or relabel synthetic data as participant data. Full procedures are in `docs/STUDY_PROTOCOL.md` and `docs/CONSENT_TEMPLATE.md`.
+
+## License, citation, and status
+
+The repository MIT license applies to the current generator, synthetic data, fictional fixtures, documentation, and tools. No participant records are included. No validated real-world benchmark paper exists; cite the repository and immutable revision, and state that results are from the public synthetic track.
 
 ```bibtex
-@software{saptahmem_bench,
-  title = {SaptahMem-Bench: A Benchmark and Study Protocol for Short-Horizon Conversational Memory},
+@software{saptahmem_bench_synthetic,
+  title = {SaptahMem-Bench: A Synthetic Benchmark Track for Seven-Day Conversational Memory},
   author = {MANMEET75},
   year = {2026},
-  version = {0.2.0-prep},
+  version = {0.3.0-synthetic-prep},
   url = {https://github.com/MANMEET75/SaptahMem-Bench}
 }
 ```
